@@ -1,16 +1,20 @@
 package com.company;
 
-public class BackSystemBank {
-    private long balance=0;
+import java.util.concurrent.atomic.AtomicLong;
 
-    public synchronized void runTransaction(Request request, int idHandler)
+public class BackSystemBank {
+
+    private AtomicLong balance = new AtomicLong();
+
+    public void runTransaction(Request request, int idHandler)
     {
         switch (request.getRequestType())
         {
             case CREDIT:
-                if (balance>=request.getAmount())
+                if (balance.get()>=request.getAmount())
                 {
-                    balance-=request.getAmount();
+                    balance.addAndGet(-request.getAmount());
+
                     System.out.println("Бэк система: "+request+" УСПЕШНО ВЫПОЛНЕНА. Получена от Обработчик заявок №"+idHandler+". Баланс банка: "+balance);
                 }
                 else {
@@ -18,7 +22,7 @@ public class BackSystemBank {
                 }
                 break;
             case REPAYMENT:
-                balance+=request.getAmount();
+                balance.addAndGet(request.getAmount());
                 System.out.println("Бэк система: "+request+" УСПЕШНО ВЫПОЛНЕНА. Получена от Обработчик заявок №"+idHandler+". Баланс банка: "+balance);
                 break;
             default:

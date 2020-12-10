@@ -1,50 +1,47 @@
 package com.company;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class FrontalSystem {
     //очередь заявок
-    private Queue<Request> requests;
+    private int QUEUE_SIZE = 2;
+    private BlockingQueue<Request> requests;
 
     FrontalSystem()
     {
-        requests = new LinkedList<>();
+        requests = new ArrayBlockingQueue<>(QUEUE_SIZE,true);
     }
 
     //принимаем запрос от клиента и добавляем его в очередь если в очереди есть место
-    public synchronized void acceptRequest(Request request)
+    public void acceptRequest(Request request)
     {
+
         try {
-            while (requests.size()>=2)
-                wait();
+            requests.put(request);
         }
         catch (InterruptedException e)
         {
             e.printStackTrace();
         }
 
-        requests.add(request);
-
         System.out.println(request.getClientThreadName()+": "+request+" отправлена в банк");
-
-        notifyAll();
 
     }
 
     //получаем запрос из очереди
-    public synchronized Request getRequest()
+    public Request getRequest()
     {
+        Request req = null;
+
         try {
-            while (requests.size()==0)
-                wait();
+            req = requests.take();
         }
-        catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
 
-        notifyAll();
-
-        return requests.poll();
+        return req;
     }
 }

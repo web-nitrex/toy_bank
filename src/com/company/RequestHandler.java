@@ -19,9 +19,10 @@ public class RequestHandler extends Thread{
         {
             //получаем запрос из очереди
             Request request = frontalSystem.getRequest();
+
             System.out.println("Обработчик заявок №"+idHandler+": Получена заявка на обработку по клиенту - "+request.getClientThreadName());
 
-            //поробуем выполнить транзакцию
+            //пробуем выполнить транзакцию
             backSystemBank.runTransaction(request,getIdHandler());
         }
     }

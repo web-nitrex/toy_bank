@@ -1,7 +1,7 @@
 package com.company;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
 
@@ -20,24 +20,21 @@ public class Main {
                                 new Request("Клиент №4", 5000,RequestType.CREDIT),
                                 new Request("Клиент №5", 150000,RequestType.CREDIT)};
 
-        //создаем список клиентов
-        List<Thread> clients = new ArrayList<>();
 
-        //создаем клиента и устанавливаем ему соответствующий запрос
+        //создаем пул клиентских потоков
+        ExecutorService executorClients = Executors.newFixedThreadPool(requests.length);
+
+        //создаем клиентов, устанавливаем ему соответствующий запрос и запускаем потоки клиентов на выполнение
         for(Request req : requests)
-            clients.add(new Client(frontalSystem,req));
+            executorClients.submit(new Client(frontalSystem,req));
 
-        //запускаем потоки клиентов на выполнение
-        for(Thread th : clients)
-            th.start();
+        //создаем пул потоков обработчиков запросов и запускаем их
+        ExecutorService executorRequestHandler = Executors.newFixedThreadPool(2);
+        executorRequestHandler.submit(new RequestHandler(1,frontalSystem,backSystemBank));
+        executorRequestHandler.submit(new RequestHandler(2,frontalSystem,backSystemBank));
 
-        //создаем обработчики заявок от клиента
-        RequestHandler rh1 = new RequestHandler(1,frontalSystem,backSystemBank);
-        RequestHandler rh2 = new RequestHandler(2,frontalSystem,backSystemBank);
-
-        //запускаем обработчики заявок
-        rh1.start();
-        rh2.start();
+        executorClients.shutdown();
+        executorRequestHandler.shutdown();
 
     }
 }
